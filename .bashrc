@@ -115,7 +115,10 @@ alias gd='git diff'
 alias gco='git checkout'
 
 export GOPATH=$HOME/go
+. "$HOME/.cargo/env"
 
 alias k="kubectl"
 alias ks="kubens"
 alias kx="kubectx"
+source <(kubectl completion bash)
+complete -F __start_kubectl k

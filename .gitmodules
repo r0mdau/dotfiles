@@ -1,0 +1,3 @@
+[submodule ".goenv"]
+	path = .goenv
+	url = https://github.com/go-nv/goenv.git

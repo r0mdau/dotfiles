@@ -15,5 +15,6 @@ fi
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
-export GOPATH=$HOME/go
-export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+export GOENV_ROOT="$HOME/.goenv"
+export PATH=$PATH:/home/romain/.local/bin:/nix/var/nix/profiles/default/bin:$GOENV_ROOT/bin
+. "$HOME/.cargo/env"

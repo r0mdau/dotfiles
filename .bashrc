@@ -103,6 +103,60 @@ if ! shopt -oq posix; then
   fi
 fi
 
+# Create new git worktrees
+function gwn() {
+  if [ -z "$1" ]; then
+    echo "Usage: gwn <new-branch-name> [base-ref]"
+    return 1
+  fi
+
+  # Centralized root for all worktrees
+  local trees_root="$HOME/trees"
+  [ -d "$trees_root" ] || mkdir -p "$trees_root"
+
+  local branch="$1"
+  local base="${2:-main}"
+  local repo_path
+  repo_path=$(git rev-parse --show-toplevel)
+  local repo_name
+  repo_name=$(basename "$repo_path")
+  
+  # Target path: ~/trees/repo-name-branch-name
+  local target_dir="${trees_root}/${repo_name}-${branch}"
+
+  echo "Creating worktree in $target_dir..."
+  git worktree add -b "$branch" "$target_dir" "$base" && cd "$target_dir" || return
+  
+  # Copy .env from the main repo if it exists (crucial for Go/Rails)
+  if [ -f "$repo_path/.env" ]; then
+    cp "$repo_path/.env" .
+    echo "Successfully copied .env from $repo_name."
+  fi
+}
+
+# Switch to a git worktree
+function gw() {
+  local target
+  # list worktrees, pick with fzf
+  target=$(git worktree list | fzf --height 40% --reverse --info=inline --header "Switch to worktree" | awk '{print $1}')
+  
+  if [ -n "$target" ]; then
+    cd "$target" || return
+  fi
+}
+
+# Remove git worktrees
+function gwr() {
+  local selections
+  # Excludes the main working directory from the list to prevent accidental deletion
+  selections=$(git worktree list | tail -n +2 | fzf -m --height 40% --reverse --header "Select worktrees to remove (Tab to multi-select)" | awk '{print $1}')
+  
+  if [ -n "$selections" ]; then
+    echo "$selections" | xargs -I {} git worktree remove {}
+    echo "Worktrees removed. Note: You may need to manually delete folders in ~/trees if they contain untracked files."
+  fi
+}
+
 export EDITOR=vi
 alias up='sudo apt update && sudo apt upgrade'
 alias s='sudo -i'
@@ -113,6 +167,8 @@ alias gl='git log'
 alias glp='git log --graph --decorate --oneline'
 alias gd='git diff'
 alias gco='git checkout'
+alias gwl='git worktree list'
+
 
 export GOPATH=$HOME/go
 . "$HOME/.cargo/env"
